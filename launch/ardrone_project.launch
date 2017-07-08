@@ -1,5 +1,6 @@
 <launch>
   <arg name="mav_name" default="ardrone"/>
+  <arg name="mav_name2" default="ardrone2"/>
   <arg name="world_name" default="basic"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
@@ -11,20 +12,20 @@
       (even when Gazebo is started through roslaunch) -->
   <arg name="verbose" default="false"/>
 
-  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find ardrone_project)/models"/>
-  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find ardrone_project)/models"/>
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find cooperative_ardrone_project)/models"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find cooperative_ardrone_project)/models"/>
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find ardrone_project)/worlds/$(arg world_name).world" />
+    <arg name="world_name" value="$(find cooperative_ardrone_project)/worlds/$(arg world_name).world" />
     <arg name="debug" value="$(arg debug)" />
     <arg name="paused" value="$(arg paused)" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="verbose" value="$(arg verbose)"/>
   </include>
 
-  <group ns="$(arg mav_name)">
+  <group ns="ardrone">
     <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">
       <arg name="mav_name" value="$(arg mav_name)" />
-      <arg name="model" value="$(find ardrone_project)/urdf/mav_camera.gazebo" />
+      <arg name="model" value="$(find cooperative_ardrone_project)/urdf/mav_camera.gazebo" />
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
@@ -36,8 +37,8 @@
     </node>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-    <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
+    <!--<node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
       <remap from="image" to="/ardrone/camera_nadir/image_raw" />
-    </node>
+    </node>-->
   </group>
 </launch>

@@ -3,16 +3,20 @@ import rospy
 from nav_msgs.msg import Odometry
 from mav_msgs.msg import RollPitchYawrateThrust
 from geometry_msgs.msg import PointStamped
+from sensor_msgs.msg import CompressedImage
+import numpy as np
 import time, sys
 import tf
+import cv2
 from mpctr import Mpc
+from detect_marker import detect_markers
 
 class ardrone_ctrl_node():
     def __init__(self):
         rospy.Subscriber('/ardrone/odometry_sensor1/odometry',Odometry,self.navdata_callback)
         rospy.Subscriber('/ardrone/ground_truth/odometry',Odometry,self.vrpn_callback)
+        rospy.Subscriber('ardrone/camera_nadir/image_raw/compressed',CompressedImage,self.image_callback,queue_size = 1)
         self.pubcmd = rospy.Publisher('/ardrone/command/roll_pitch_yawrate_thrust',RollPitchYawrateThrust)
-        rospy.on_shutdown(self.onClose)
         self.position=[0]*3
         self.velocity=[0]*3
         self.rpy=[0]*3
@@ -32,7 +36,14 @@ class ardrone_ctrl_node():
         self.velocity[2] = data.twist.twist.linear.z
         self.mpc_ctrl()
         self.sendCommand()
-        print self.sim_time,"%.3f,%.3f,%.3f,%.3f"%(self.cmd[0],self.cmd[1],self.cmd[2],self.cmd[3])
+        #print self.sim_time,"%.3f,%.3f,%.3f,%.3f"%(self.cmd[0],self.cmd[1],self.cmd[2],self.cmd[3])
+
+    def image_callback(self,ros_data):
+    	np_arr = np.fromstring(ros_data.data, np.uint8)
+        image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+        detect_markers(image_np)
+        cv2.imshow('cv_img', image_np)
+        cv2.waitKey(2)
 
     def navdata_callback(self,data):
         quaternion = (
@@ -67,11 +78,11 @@ class ardrone_ctrl_node():
         msg.thrust.z = self.cmd[3]
         self.pubcmd.publish(msg)
 
-    def onClose(self):
-        pass
+def onClose():
+    print "Closing..."
 
 if __name__ == '__main__':
     rospy.init_node('ardrone_ctrl', anonymous=True)
+    rospy.on_shutdown(onClose)
     acn = ardrone_ctrl_node()
-
     rospy.spin()

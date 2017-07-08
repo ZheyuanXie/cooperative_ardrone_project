@@ -9,7 +9,7 @@ init_z = 0.0
 
 # function of the planned path
 def p_x(t):
-    return cos(pi / 5 * t + pi / 2)
+    return cos(pi / 5 * t)
     #return init_x - 2 + 2 * cos(pi / 10 * t)
 
 
